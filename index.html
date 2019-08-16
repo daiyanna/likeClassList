@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>like classList</title>
+</head>
+<body>
+    <div id="J_Div" class="classA"></div>
+    <span id="J_Span"></span>
+    <a id="J_A"></a>
+
+    <script>
+        // 找到Dom节点统一构造器函数
+        var divEle = document.getElementById('J_Div');
+        var spanEle = document.getElementById('J_Span');
+        // console.log(divEle.__proto__, divEle.__proto__.__proto__) //HTMLDivElement -> HTMLElement -> Element(append、attribute相关、) -> Node(nodeName\type\value) -> EventTarget(add\removeEventListener) -> Object(valueOf\toString)
+
+
+        // 定义lickClassList构造函数
+        function LickClassList(dom){
+            this.dom = dom;
+            Object.defineProperty(this, 'value', {  //这种自己写的构造器函数的属性定义要写在构造器里面 并且对象为this
+                set: function(val){     //当在对象上设置value值得时候，改变dom节点的属性值
+                    this.dom.className = val.length === 1 ? val[0] : val.join(' ');
+                }
+            })
+        }
+        LickClassList.prototype = {
+            getClassArry: function() {
+                return this.dom.className.split(' ');
+            },
+            add: function(cls){
+                var cl = this.getClassArry();
+                cl.push(cls)
+                this.value = cl;
+            },
+            remove: function(cls){
+                var cl = this.getClassArry();
+                for(var i=0, len = cl.length; i<len; i++) {
+                    if(cl[i]===cls){
+                        cl.splice(i, 1);
+                        this.value = cl;
+                        return true;
+                    }
+                }
+            },
+            contains: function(cls){
+                return this.getClassArry().includes(cls);
+            },
+            toggle: function(cls) {
+                if(this.contains(cls)) {
+                    this.remove(cls);
+                } else {
+                    this.add(cls)
+                }
+            },
+        }
+
+        // // 添加可变的lickClassList属性
+        // // HTMLElement.lickClassList = []; //这样改属性不会被添加到HTMLElement上面
+        // // HTMLElement.prototype.lickClassList=[]; //lickClassList会被添加到对象HTMLElement上面，但是这样做每个势力的lickClassList值都是一样的
+        Object.defineProperty(HTMLElement.prototype, 'lickClassList', { //之一此处是HTMLElement.prototype原因上面两行
+            get : function(){   //该function中的this为被定义属性的对象
+                // var cl = this.className; //当对象为HTMLElement.prototype时this.className 这样的调用报错
+                if(!this.__lcl__) {
+                    this.__lcl__ = new LickClassList(this)
+
+                    // this.__lcl__ = this.className ? this.className.split(' ') : []  //必须要有让返回的lickClassList属性就有数组的方法可以使用
+                    // this.__lcl__.__proto__ = new LickClassList(this);
+                    // Object.setPrototypeOf(this.__lcl__, LickClassList.prototype);
+                    // 如果像上面两条那样设置那么this.className就获取不到值了 所以直接new一个传参this 给__lcl__所有的操作都交给构造器去实现
+                }
+                return this.__lcl__;
+                // return '111';   //如果返回的是字符串那么divEle.lickClassList===spanEle.lickClassList完全相同，所以使用上面的单例模式在对象上保留一个私有变量__lcl__该变量也会被添加到该对象上面,【】与对象由于是引用类型所以不相同
+            }
+        })
+
+
+        console.log('结果', divEle.lickClassList, divEle.lickClassList.toggle('classB'), spanEle.lickClassList.add('class') ,HTMLDivElement.prototype.lickClassList);
+    </script>
+</body>
+</html>
