@@ -23,18 +23,19 @@
             this.dom = dom;
             Object.defineProperty(this, 'value', {  //这种自己写的构造器函数的属性定义要写在构造器里面 并且对象为this
                 set: function(val){     //当在对象上设置value值得时候，改变dom节点的属性值
-                    this.dom.className = val.length === 1 ? val[0] : val.join(' ');
+                    this.dom.className = val.join(' ');
                 }
             })
         }
         LickClassList.prototype = {
             getClassArry: function() {
-                return this.dom.className.split(' ');
+                return this.dom.className ? this.dom.className.split(' ') : [];
             },
             add: function(cls){
                 var cl = this.getClassArry();
                 cl.push(cls)
                 this.value = cl;
+                return this; //为了链式调用
             },
             remove: function(cls){
                 var cl = this.getClassArry();
@@ -42,7 +43,7 @@
                     if(cl[i]===cls){
                         cl.splice(i, 1);
                         this.value = cl;
-                        return true;
+                        return this;
                     }
                 }
             },
@@ -55,6 +56,7 @@
                 } else {
                     this.add(cls)
                 }
+                return this; //为了链式调用
             },
         }
 
@@ -78,7 +80,7 @@
         })
 
 
-        console.log('结果', divEle.lickClassList, divEle.lickClassList.toggle('classB'), spanEle.lickClassList.add('class') ,HTMLDivElement.prototype.lickClassList);
+        console.log('结果', divEle.lickClassList, divEle.lickClassList.remove('classA').add('class'), spanEle.lickClassList.add('class').add('class1') ,HTMLDivElement.prototype.lickClassList);
     </script>
 </body>
 </html>
